@@ -15,8 +15,10 @@
  */
 package com.datastax.oss.driver.api.core.config;
 
+import com.datastax.dse.driver.api.core.config.DseDriverOption;
 import com.datastax.oss.driver.api.core.context.DriverContext;
 import com.datastax.oss.driver.api.core.session.SessionBuilder;
+import com.datastax.oss.driver.internal.core.config.map.MapBasedDriverConfigLoader;
 import com.datastax.oss.driver.internal.core.config.typesafe.DefaultDriverConfigLoader;
 import com.datastax.oss.driver.internal.core.config.typesafe.DefaultProgrammaticDriverConfigLoaderBuilder;
 import com.typesafe.config.Config;
@@ -25,7 +27,9 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages the initialization, and optionally the periodic reloading, of the driver configuration.
@@ -219,6 +223,80 @@ public interface DriverConfigLoader extends AutoCloseable {
   @NonNull
   static ProgrammaticDriverConfigLoaderBuilder programmaticBuilder() {
     return new DefaultProgrammaticDriverConfigLoaderBuilder();
+  }
+
+  /**
+   * Builds an instance backed by a Java map.
+   *
+   * <p>This is the simplest implementation. It is intended for clients who wish to manage all the
+   * configuration in memory. It does not depend on Typesafe config, and does not load from any
+   * file; in particular, the driver's built-in {@code reference.conf} file is ignored, the caller
+   * must explicitly provide all mandatory options.
+   *
+   * <p>The provided map contains execution profiles indexed by name. There MUST be a default
+   * profile under the name {@link DriverExecutionProfile#DEFAULT_NAME}. Each profile is itself a
+   * map, that associates values to {@link DriverOption} instances:
+   *
+   * <pre>
+   * Map&lt;String, Map&lt;DriverOption, Object&gt;&gt; optionsMap = new ConcurrentHashMap&lt;&gt;();
+   * Map&lt;DriverOption, Object&gt; defaultProfileMap = new ConcurrentHashMap&lt;&gt;();
+   * optionsMap.put(DriverExecutionProfile.DEFAULT_NAME, defaultProfileMap);
+   * defaultProfileMap.put(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(5));
+   *
+   * DriverConfigLoader loader = DriverConfigLoader.fromMap(optionsMap);
+   * CqlSession session = CqlSession.builder().withConfigLoader(loader).build();
+   * </pre>
+   *
+   * Built-in {@code DriverOption} instances are defined in the two enums {@link
+   * DefaultDriverOption} and {@link DseDriverOption}.
+   *
+   * <p>For historical reasons, {@code DriverOption} does not encode type information (this is a
+   * limitation of the original design and can't be changed easily without breaking backward
+   * compatibility); to find out the expected type for each option, refer to the javadocs of the two
+   * enums.
+   *
+   * <p>Not all options are required. For more details, refer to the {@code reference.conf} file
+   * shipped with the driver.
+   *
+   * <p>For convenience, {@link #buildDefaultOptionsMap()} initializes a map pre-filled with a
+   * default profile containing all of the driver's built-in defaults. This yields a configuration
+   * equivalent to the driver's {@code reference.conf} file, and can be used as a starting point if
+   * you only need to customize a few options:
+   *
+   * <pre>
+   * // This creates a configuration equivalent to the built-in reference.conf:
+   * Map&lt;String, Map&lt;DriverOption, Object&gt;&gt; optionsMap =
+   *     DriverConfigLoader.buildDefaultOptionsMap();
+   *
+   * optionsMap
+   *     .get(DriverExecutionProfile.DEFAULT_NAME)
+   *     .put(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(5));
+   *
+   * DriverConfigLoader loader = DriverConfigLoader.fromMap(optionsMap);
+   * </pre>
+   *
+   * <p>All maps must be thread-safe. If you want the ability to change the options after
+   * construction, use a concurrent or synchronized implementation ({@link ConcurrentHashMap} is a
+   * good choice); otherwise, you can use an immutable implementation.
+   *
+   * <p>If the contents of the map are modified at runtime, this will be reflected immediately in
+   * the configuration. You don't need to call {@link #reload()} explicitly. Note however that,
+   * depending on the option, the driver might not react to a configuration change immediately, or
+   * ever. This is again documented in {@code reference.conf}.
+   */
+  @NonNull
+  static DriverConfigLoader fromMap(@NonNull Map<String, Map<DriverOption, Object>> optionsMap) {
+    return new MapBasedDriverConfigLoader(optionsMap);
+  }
+
+  /**
+   * Builds a new map containing the built-in defaults, for use with {@link #fromMap(Map)}.
+   *
+   * <p>The returned map is modifiable and thread-safe. Each call returns a different instance.
+   */
+  @NonNull
+  static Map<String, Map<DriverOption, Object>> buildDefaultOptionsMap() {
+    return MapBasedDriverConfigLoader.buildDefaultOptionsMap();
   }
 
   /**
