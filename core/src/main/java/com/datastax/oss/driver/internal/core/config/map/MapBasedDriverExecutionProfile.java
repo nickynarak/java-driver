@@ -43,7 +43,7 @@ public class MapBasedDriverExecutionProfile implements DriverExecutionProfile {
   // The backing map for the default profile (if the current one is not the default)
   private final Map<DriverOption, Object> defaultProfile;
 
-  public MapBasedDriverExecutiongProfile(
+  public MapBasedDriverExecutionProfile(
       Map<String, Map<DriverOption, Object>> optionsMap, String profileName) {
     this(
         profileName,
