@@ -34,7 +34,7 @@ public class MapBasedDriverExecutionProfile implements DriverExecutionProfile {
 
   private static final Object NO_VALUE = new Object();
 
-  private final String name;
+  private final String profileName;
   // Anything that was overridden in a derived profile with `withXxx` methods. Empty for non-derived
   // profiles
   private final Map<DriverOption, Object> overrides;
@@ -43,25 +43,27 @@ public class MapBasedDriverExecutionProfile implements DriverExecutionProfile {
   // The backing map for the default profile (if the current one is not the default)
   private final Map<DriverOption, Object> defaultProfile;
 
-  public MapBasedDriverExecutionProfile(
-      Map<String, Map<DriverOption, Object>> optionsMap, String name) {
+  public MapBasedDriverExecutiongProfile(
+      Map<String, Map<DriverOption, Object>> optionsMap, String profileName) {
     this(
-        name,
+        profileName,
         Collections.emptyMap(),
-        optionsMap.get(name),
-        name.equals(DriverExecutionProfile.DEFAULT_NAME)
+        optionsMap.get(profileName),
+        profileName.equals(DriverExecutionProfile.DEFAULT_NAME)
             ? Collections.emptyMap()
             : optionsMap.get(DriverExecutionProfile.DEFAULT_NAME));
     Preconditions.checkArgument(
-        optionsMap.containsKey(name), "Unknown profile '%s'. Check your configuration.", name);
+        optionsMap.containsKey(profileName),
+        "Unknown profile '%s'. Check your configuration.",
+        profileName);
   }
 
   public MapBasedDriverExecutionProfile(
-      String name,
+      String profileName,
       Map<DriverOption, Object> overrides,
       Map<DriverOption, Object> profile,
       Map<DriverOption, Object> defaultProfile) {
-    this.name = name;
+    this.profileName = profileName;
     this.overrides = overrides;
     this.profile = profile;
     this.defaultProfile = defaultProfile;
@@ -70,7 +72,7 @@ public class MapBasedDriverExecutionProfile implements DriverExecutionProfile {
   @NonNull
   @Override
   public String getName() {
-    return name;
+    return profileName;
   }
 
   @Override
@@ -219,7 +221,8 @@ public class MapBasedDriverExecutionProfile implements DriverExecutionProfile {
       }
     }
     newOverrides.put(option, value);
-    return new MapBasedDriverExecutionProfile(name, newOverrides.build(), profile, defaultProfile);
+    return new MapBasedDriverExecutionProfile(
+        profileName, newOverrides.build(), profile, defaultProfile);
   }
 
   @NonNull
