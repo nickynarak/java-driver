@@ -268,9 +268,9 @@ public interface DriverConfigLoader extends AutoCloseable {
    * Map&lt;String, Map&lt;DriverOption, Object&gt;&gt; optionsMap =
    *     DriverConfigLoader.buildDefaultOptionsMap();
    *
-   * optionsMap
-   *     .get(DriverExecutionProfile.DEFAULT_NAME)
-   *     .put(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(5));
+   * Map&lt;DriverOption, Object&gt; defaultProfileMap = optionsMap.get(
+   *     DriverExecutionProfile.DEFAULT_NAME);
+   * defaultProfileMap.put(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(5));
    *
    * DriverConfigLoader loader = DriverConfigLoader.fromMap(optionsMap);
    * </pre>
