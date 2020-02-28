@@ -20,29 +20,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
 import com.datastax.oss.driver.api.core.config.DriverConfig;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
-import com.datastax.oss.driver.api.core.config.DriverExecutionProfile;
-import com.datastax.oss.driver.api.core.config.DriverOption;
+import com.datastax.oss.driver.api.core.config.map.OptionsMap;
 import com.datastax.oss.driver.internal.core.config.MockOptions;
+import com.datastax.oss.driver.internal.core.config.MockTypedOptions;
 import com.datastax.oss.driver.internal.core.config.typesafe.DefaultDriverConfigLoader;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.concurrent.ConcurrentHashMap;
 import org.junit.Test;
 
 public class MapBasedDriverConfigLoaderTest {
 
   @Test
   public void should_reflect_changes_in_real_time() {
-    Map<String, Map<DriverOption, Object>> optionsMap = new ConcurrentHashMap<>();
-    Map<DriverOption, Object> defaultProfileMap = new ConcurrentHashMap<>();
-    optionsMap.put(DriverExecutionProfile.DEFAULT_NAME, defaultProfileMap);
-    defaultProfileMap.put(MockOptions.INT1, 1);
+    OptionsMap source = OptionsMap.empty();
+    source.put(MockTypedOptions.INT1, 1);
 
-    DriverConfigLoader loader = DriverConfigLoader.fromMap(optionsMap);
+    DriverConfigLoader loader = DriverConfigLoader.fromMap(source);
     DriverConfig config = loader.getInitialConfig();
     assertThat(config.getDefaultProfile().getInt(MockOptions.INT1)).isEqualTo(1);
 
-    defaultProfileMap.put(MockOptions.INT1, 2);
+    source.put(MockTypedOptions.INT1, 2);
     assertThat(config.getDefaultProfile().getInt(MockOptions.INT1)).isEqualTo(2);
   }
 
@@ -53,7 +50,7 @@ public class MapBasedDriverConfigLoaderTest {
   @Test
   public void should_fill_default_profile_like_reference_file() {
     SortedSet<Map.Entry<String, Object>> memoryBased =
-        DriverConfigLoader.fromMap(DriverConfigLoader.buildDefaultOptionsMap())
+        DriverConfigLoader.fromMap(OptionsMap.driverDefaults())
             .getInitialConfig()
             .getDefaultProfile()
             .entrySet();
