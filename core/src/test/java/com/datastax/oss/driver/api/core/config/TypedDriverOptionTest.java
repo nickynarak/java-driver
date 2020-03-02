@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datastax.oss.driver.api.core.config.map;
+package com.datastax.oss.driver.api.core.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.datastax.dse.driver.api.core.config.DseDriverOption;
-import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
-import com.datastax.oss.driver.api.core.config.DriverOption;
 import com.datastax.oss.driver.shaded.guava.common.collect.ImmutableSet;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

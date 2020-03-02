@@ -15,7 +15,7 @@
  */
 package com.datastax.oss.driver.internal.core.config;
 
-import com.datastax.oss.driver.api.core.config.map.TypedDriverOption;
+import com.datastax.oss.driver.api.core.config.TypedDriverOption;
 import com.datastax.oss.driver.api.core.type.reflect.GenericType;
 
 public class MockTypedOptions {

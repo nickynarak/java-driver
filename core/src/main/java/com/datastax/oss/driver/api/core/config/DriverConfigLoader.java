@@ -15,7 +15,6 @@
  */
 package com.datastax.oss.driver.api.core.config;
 
-import com.datastax.oss.driver.api.core.config.map.OptionsMap;
 import com.datastax.oss.driver.api.core.context.DriverContext;
 import com.datastax.oss.driver.api.core.session.SessionBuilder;
 import com.datastax.oss.driver.internal.core.config.map.MapBasedDriverConfigLoader;
@@ -256,7 +255,7 @@ public interface DriverConfigLoader extends AutoCloseable {
    */
   @NonNull
   static DriverConfigLoader fromMap(@NonNull OptionsMap source) {
-    return new MapBasedDriverConfigLoader(source);
+    return new MapBasedDriverConfigLoader(source.asRawMap());
   }
 
   /**

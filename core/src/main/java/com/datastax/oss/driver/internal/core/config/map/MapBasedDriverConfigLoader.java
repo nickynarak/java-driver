@@ -17,24 +17,25 @@ package com.datastax.oss.driver.internal.core.config.map;
 
 import com.datastax.oss.driver.api.core.config.DriverConfig;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
-import com.datastax.oss.driver.api.core.config.map.OptionsMap;
+import com.datastax.oss.driver.api.core.config.DriverOption;
 import com.datastax.oss.driver.api.core.context.DriverContext;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 public class MapBasedDriverConfigLoader implements DriverConfigLoader {
 
-  @NonNull private final OptionsMap source;
+  @NonNull private final Map<String, Map<DriverOption, Object>> optionsMap;
 
-  public MapBasedDriverConfigLoader(@NonNull OptionsMap source) {
-    this.source = source;
+  public MapBasedDriverConfigLoader(@NonNull Map<String, Map<DriverOption, Object>> optionsMap) {
+    this.optionsMap = optionsMap;
   }
 
   @NonNull
   @Override
   public DriverConfig getInitialConfig() {
-    return new MapBasedDriverConfig(source);
+    return new MapBasedDriverConfig(optionsMap);
   }
 
   @Override

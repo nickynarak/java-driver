@@ -18,7 +18,6 @@ package com.datastax.oss.driver.internal.core.config.map;
 import com.datastax.oss.driver.api.core.config.DriverConfig;
 import com.datastax.oss.driver.api.core.config.DriverExecutionProfile;
 import com.datastax.oss.driver.api.core.config.DriverOption;
-import com.datastax.oss.driver.api.core.config.map.OptionsMap;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Collections;
 import java.util.Map;
@@ -30,8 +29,8 @@ public class MapBasedDriverConfig implements DriverConfig {
   private final Map<String, Map<DriverOption, Object>> optionsMap;
   private final Map<String, MapBasedDriverExecutionProfile> profiles = new ConcurrentHashMap<>();
 
-  public MapBasedDriverConfig(OptionsMap source) {
-    optionsMap = source.asRawMap();
+  public MapBasedDriverConfig(Map<String, Map<DriverOption, Object>> optionsMap) {
+    this.optionsMap = optionsMap;
     if (!optionsMap.containsKey(DriverExecutionProfile.DEFAULT_NAME)) {
       throw new IllegalArgumentException(
           "The options map must contain a profile named " + DriverExecutionProfile.DEFAULT_NAME);

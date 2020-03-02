@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
 import com.datastax.oss.driver.api.core.config.DriverConfig;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
-import com.datastax.oss.driver.api.core.config.map.OptionsMap;
+import com.datastax.oss.driver.api.core.config.OptionsMap;
 import com.datastax.oss.driver.internal.core.config.MockOptions;
 import com.datastax.oss.driver.internal.core.config.MockTypedOptions;
 import com.datastax.oss.driver.internal.core.config.typesafe.DefaultDriverConfigLoader;
@@ -32,7 +32,7 @@ public class MapBasedDriverConfigLoaderTest {
 
   @Test
   public void should_reflect_changes_in_real_time() {
-    OptionsMap source = OptionsMap.empty();
+    OptionsMap source = new OptionsMap();
     source.put(MockTypedOptions.INT1, 1);
 
     DriverConfigLoader loader = DriverConfigLoader.fromMap(source);

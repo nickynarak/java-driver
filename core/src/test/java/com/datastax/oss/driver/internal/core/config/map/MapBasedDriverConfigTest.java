@@ -17,8 +17,10 @@ package com.datastax.oss.driver.internal.core.config.map;
 
 import static com.datastax.oss.driver.Assertions.assertThat;
 
+import com.datastax.oss.driver.api.core.config.DriverConfig;
+import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.config.DriverExecutionProfile;
-import com.datastax.oss.driver.api.core.config.map.OptionsMap;
+import com.datastax.oss.driver.api.core.config.OptionsMap;
 import com.datastax.oss.driver.internal.core.config.MockOptions;
 import com.datastax.oss.driver.internal.core.config.MockTypedOptions;
 import org.junit.Test;
@@ -27,20 +29,20 @@ public class MapBasedDriverConfigTest {
 
   @Test
   public void should_load_minimal_config_with_no_profiles() {
-    OptionsMap source = OptionsMap.empty();
+    OptionsMap source = new OptionsMap();
     source.put(MockTypedOptions.INT1, 42);
-    MapBasedDriverConfig config = new MapBasedDriverConfig(source);
+    DriverConfig config = DriverConfigLoader.fromMap(source).getInitialConfig();
 
     assertThat(config).hasIntOption(MockOptions.INT1, 42);
   }
 
   @Test
   public void should_inherit_option_in_profile() {
-    OptionsMap source = OptionsMap.empty();
+    OptionsMap source = new OptionsMap();
     source.put(MockTypedOptions.INT1, 42);
     // need to add an unrelated option to create the profile
     source.put("profile1", MockTypedOptions.INT2, 1);
-    MapBasedDriverConfig config = new MapBasedDriverConfig(source);
+    DriverConfig config = DriverConfigLoader.fromMap(source).getInitialConfig();
 
     assertThat(config)
         .hasIntOption(MockOptions.INT1, 42)
@@ -49,10 +51,10 @@ public class MapBasedDriverConfigTest {
 
   @Test
   public void should_override_option_in_profile() {
-    OptionsMap source = OptionsMap.empty();
+    OptionsMap source = new OptionsMap();
     source.put(MockTypedOptions.INT1, 42);
     source.put("profile1", MockTypedOptions.INT1, 43);
-    MapBasedDriverConfig config = new MapBasedDriverConfig(source);
+    DriverConfig config = DriverConfigLoader.fromMap(source).getInitialConfig();
 
     assertThat(config)
         .hasIntOption(MockOptions.INT1, 42)
@@ -61,9 +63,9 @@ public class MapBasedDriverConfigTest {
 
   @Test
   public void should_create_derived_profile_with_new_option() {
-    OptionsMap source = OptionsMap.empty();
+    OptionsMap source = new OptionsMap();
     source.put(MockTypedOptions.INT1, 42);
-    MapBasedDriverConfig config = new MapBasedDriverConfig(source);
+    DriverConfig config = DriverConfigLoader.fromMap(source).getInitialConfig();
     DriverExecutionProfile base = config.getDefaultProfile();
     DriverExecutionProfile derived = base.withInt(MockOptions.INT2, 43);
 
@@ -74,9 +76,9 @@ public class MapBasedDriverConfigTest {
 
   @Test
   public void should_create_derived_profile_overriding_option() {
-    OptionsMap source = OptionsMap.empty();
+    OptionsMap source = new OptionsMap();
     source.put(MockTypedOptions.INT1, 42);
-    MapBasedDriverConfig config = new MapBasedDriverConfig(source);
+    DriverConfig config = DriverConfigLoader.fromMap(source).getInitialConfig();
     DriverExecutionProfile base = config.getDefaultProfile();
     DriverExecutionProfile derived = base.withInt(MockOptions.INT1, 43);
 
@@ -86,10 +88,10 @@ public class MapBasedDriverConfigTest {
 
   @Test
   public void should_create_derived_profile_unsetting_option() {
-    OptionsMap source = OptionsMap.empty();
+    OptionsMap source = new OptionsMap();
     source.put(MockTypedOptions.INT1, 42);
     source.put(MockTypedOptions.INT2, 43);
-    MapBasedDriverConfig config = new MapBasedDriverConfig(source);
+    DriverConfig config = DriverConfigLoader.fromMap(source).getInitialConfig();
     DriverExecutionProfile base = config.getDefaultProfile();
     DriverExecutionProfile derived = base.without(MockOptions.INT2);
 
