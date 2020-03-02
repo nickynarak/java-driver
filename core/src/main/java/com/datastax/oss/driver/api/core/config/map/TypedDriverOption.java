@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 
 public class TypedDriverOption<ValueT> {
 
@@ -44,6 +45,31 @@ public class TypedDriverOption<ValueT> {
   @NonNull
   public GenericType<ValueT> getExpectedType() {
     return expectedType;
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (other == this) {
+      return true;
+    } else if (other instanceof TypedDriverOption) {
+      TypedDriverOption<?> that = (TypedDriverOption<?>) other;
+      return this.rawOption.equals(that.rawOption) && this.expectedType.equals(that.expectedType);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(rawOption, expectedType);
+  }
+
+  @Override
+  public String toString() {
+    return new StringJoiner(", ", TypedDriverOption.class.getSimpleName() + "[", "]")
+        .add("rawOption=" + rawOption)
+        .add("expectedType=" + expectedType)
+        .toString();
   }
 
   public static final TypedDriverOption<List<String>> CONTACT_POINTS =
