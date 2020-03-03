@@ -24,8 +24,34 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * An in-memory repository of config options, for use with {@link
+ * DriverConfigLoader#fromMap(OptionsMap)}.
+ *
+ * <p>This class is intended for clients who wish to assemble the driver configuration in memory,
+ * instead of loading it from configuration files. Note that {@link #driverDefaults()} can be used
+ * to pre-initialize the map with the driver's built-in defaults.
+ *
+ * <p>It functions like a two-dimensional map indexed by execution profile and option. All methods
+ * have a profile-less variant that applies to the default profile, for example {@link #get(String,
+ * TypedDriverOption)} and {@link #get(TypedDriverOption)}. Options are represented by {@link
+ * TypedDriverOption}, which allows this class to enforce additional type-safety guarantees (an
+ * option can only be set to a value of its intended type).
+ *
+ * <p>This class is mutable and thread-safe. Live changes are reflected in real time to the driver
+ * session(s) that use this configuration.
+ *
+ * @since 4.6.0
+ */
 public class OptionsMap {
 
+  /**
+   * Creates a new instance that contains the driver's default configuration.
+   *
+   * <p>This will produce a configuration that is equivalent to the {@code reference.conf} file
+   * bundled with the driver (however, this method does not load any file, and doesn't require
+   * Typesafe config in the classpath).
+   */
   @NonNull
   public static OptionsMap driverDefaults() {
     OptionsMap source = new OptionsMap();
@@ -36,6 +62,12 @@ public class OptionsMap {
   private final ConcurrentHashMap<String, Map<DriverOption, Object>> map =
       new ConcurrentHashMap<>();
 
+  /**
+   * Associates the specified value for the specified option, in the specified execution profile.
+   *
+   * @return the previous value associated with {@code option}, or {@code null} if the option was
+   *     not defined.
+   */
   @Nullable
   public <ValueT> ValueT put(
       @NonNull String profile, @NonNull TypedDriverOption<ValueT> option, @NonNull ValueT value) {
@@ -45,11 +77,21 @@ public class OptionsMap {
     return cast(previous);
   }
 
+  /**
+   * Associates the specified value for the specified option, in the default execution profile.
+   *
+   * @return the previous value associated with {@code option}, or {@code null} if the option was
+   *     not defined.
+   */
   @Nullable
   public <ValueT> ValueT put(@NonNull TypedDriverOption<ValueT> option, @NonNull ValueT value) {
     return put(DriverExecutionProfile.DEFAULT_NAME, option, value);
   }
 
+  /**
+   * Returns the value to which the specified option is mapped in the specified profile, or {@code
+   * null} if the option is not defined.
+   */
   @Nullable
   public <ValueT> ValueT get(@NonNull String profile, @NonNull TypedDriverOption<ValueT> option) {
     Objects.requireNonNull(option, "option");
@@ -57,11 +99,21 @@ public class OptionsMap {
     return cast(result);
   }
 
+  /**
+   * Returns the value to which the specified option is mapped in the default profile, or {@code
+   * null} if the option is not defined.
+   */
   @Nullable
   public <ValueT> ValueT get(@NonNull TypedDriverOption<ValueT> option) {
     return get(DriverExecutionProfile.DEFAULT_NAME, option);
   }
 
+  /**
+   * Removes the specified option from the specified profile.
+   *
+   * @return the previous value associated with {@code option}, or {@code null} if the option was
+   *     not defined.
+   */
   @Nullable
   public <ValueT> ValueT remove(
       @NonNull String profile, @NonNull TypedDriverOption<ValueT> option) {
@@ -70,11 +122,23 @@ public class OptionsMap {
     return cast(previous);
   }
 
+  /**
+   * Removes the specified option from the default profile.
+   *
+   * @return the previous value associated with {@code option}, or {@code null} if the option was
+   *     not defined.
+   */
   @Nullable
   public <ValueT> ValueT remove(@NonNull TypedDriverOption<ValueT> option) {
     return remove(DriverExecutionProfile.DEFAULT_NAME, option);
   }
 
+  /**
+   * Returns a live view of this object, using the driver's untyped {@link DriverOption}.
+   *
+   * <p>This is intended for internal usage by the driver. Modifying the resulting map is strongly
+   * discouraged, as it could break the type-safety guarantees provided by the public methods.
+   */
   @NonNull
   protected Map<String, Map<DriverOption, Object>> asRawMap() {
     return map;

@@ -252,6 +252,8 @@ public interface DriverConfigLoader extends AutoCloseable {
    * configuration. You don't need to call {@link #reload()} explicitly. Note however that,
    * depending on the option, the driver might not react to a configuration change immediately, or
    * ever (this is again documented in {@code reference.conf}).
+   *
+   * @since 4.6.0
    */
   @NonNull
   static DriverConfigLoader fromMap(@NonNull OptionsMap source) {
