@@ -20,9 +20,12 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 /**
  * An in-memory repository of config options, for use with {@link
@@ -61,6 +64,7 @@ public class OptionsMap {
 
   private final ConcurrentHashMap<String, Map<DriverOption, Object>> map =
       new ConcurrentHashMap<>();
+  private final List<Consumer<OptionsMap>> changeListeners = new CopyOnWriteArrayList<>();
 
   /**
    * Associates the specified value for the specified option, in the specified execution profile.
@@ -74,6 +78,11 @@ public class OptionsMap {
     Objects.requireNonNull(option, "option");
     Objects.requireNonNull(value, "value");
     Object previous = getProfileMap(profile).put(option.getRawOption(), value);
+    if (!value.equals(previous)) {
+      for (Consumer<OptionsMap> listener : changeListeners) {
+        listener.accept(this);
+      }
+    }
     return cast(previous);
   }
 
@@ -119,6 +128,11 @@ public class OptionsMap {
       @NonNull String profile, @NonNull TypedDriverOption<ValueT> option) {
     Objects.requireNonNull(option, "option");
     Object previous = getProfileMap(profile).remove(option.getRawOption());
+    if (previous != null) {
+      for (Consumer<OptionsMap> listener : changeListeners) {
+        listener.accept(this);
+      }
+    }
     return cast(previous);
   }
 
@@ -131,6 +145,21 @@ public class OptionsMap {
   @Nullable
   public <ValueT> ValueT remove(@NonNull TypedDriverOption<ValueT> option) {
     return remove(DriverExecutionProfile.DEFAULT_NAME, option);
+  }
+
+  /** Registers a listener that will get notified when this object changes. */
+  public void addChangeListener(@NonNull Consumer<OptionsMap> listener) {
+    changeListeners.add(Objects.requireNonNull(listener));
+  }
+
+  /**
+   * Unregisters a listener that was previously registered with {@link
+   * #addChangeListener(Consumer)}.
+   *
+   * @return {@code true} if the listener was indeed registered for this object.
+   */
+  public boolean removeChangeListener(@NonNull Consumer<OptionsMap> listener) {
+    return changeListeners.remove(Objects.requireNonNull(listener));
   }
 
   /**

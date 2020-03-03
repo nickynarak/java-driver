@@ -257,7 +257,7 @@ public interface DriverConfigLoader extends AutoCloseable {
    */
   @NonNull
   static DriverConfigLoader fromMap(@NonNull OptionsMap source) {
-    return new MapBasedDriverConfigLoader(source.asRawMap());
+    return new MapBasedDriverConfigLoader(source, source.asRawMap());
   }
 
   /**

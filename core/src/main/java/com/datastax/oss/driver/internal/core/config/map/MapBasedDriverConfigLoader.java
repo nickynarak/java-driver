@@ -18,29 +18,45 @@ package com.datastax.oss.driver.internal.core.config.map;
 import com.datastax.oss.driver.api.core.config.DriverConfig;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.config.DriverOption;
+import com.datastax.oss.driver.api.core.config.OptionsMap;
 import com.datastax.oss.driver.api.core.context.DriverContext;
+import com.datastax.oss.driver.internal.core.config.ConfigChangeEvent;
+import com.datastax.oss.driver.internal.core.context.EventBus;
+import com.datastax.oss.driver.internal.core.context.InternalDriverContext;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
 
-public class MapBasedDriverConfigLoader implements DriverConfigLoader {
+public class MapBasedDriverConfigLoader implements DriverConfigLoader, Consumer<OptionsMap> {
 
-  @NonNull private final Map<String, Map<DriverOption, Object>> optionsMap;
+  @NonNull private final OptionsMap source;
+  @NonNull private final Map<String, Map<DriverOption, Object>> rawMap;
+  private volatile EventBus eventBus;
 
-  public MapBasedDriverConfigLoader(@NonNull Map<String, Map<DriverOption, Object>> optionsMap) {
-    this.optionsMap = optionsMap;
+  public MapBasedDriverConfigLoader(
+      @NonNull OptionsMap source, @NonNull Map<String, Map<DriverOption, Object>> rawMap) {
+    this.source = source;
+    this.rawMap = rawMap;
   }
 
   @NonNull
   @Override
   public DriverConfig getInitialConfig() {
-    return new MapBasedDriverConfig(optionsMap);
+    return new MapBasedDriverConfig(rawMap);
   }
 
   @Override
   public void onDriverInit(@NonNull DriverContext context) {
-    // nothing to do
+    eventBus = ((InternalDriverContext) context).getEventBus();
+    source.addChangeListener(this);
+  }
+
+  @Override
+  public void accept(OptionsMap map) {
+    assert eventBus != null; // listener is registered after setting this field
+    eventBus.fire(ConfigChangeEvent.INSTANCE);
   }
 
   @NonNull
@@ -56,6 +72,6 @@ public class MapBasedDriverConfigLoader implements DriverConfigLoader {
 
   @Override
   public void close() {
-    // nothing to do
+    source.removeChangeListener(this);
   }
 }
