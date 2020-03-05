@@ -4,6 +4,8 @@
 
 ### 4.6.0 (in progress)
 
+- [new feature] JAVA-2670: Provide base class for mapped custom codecs
+
 ### 4.5.0
 
 - [bug] JAVA-2654: Make AdminRequestHandler handle integer serialization
