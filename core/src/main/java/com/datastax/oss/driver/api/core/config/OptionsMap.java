@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import net.jcip.annotations.Immutable;
+import net.jcip.annotations.ThreadSafe;
 
 /**
  * An in-memory repository of config options, for use with {@link
@@ -50,6 +51,7 @@ import net.jcip.annotations.Immutable;
  *
  * @since 4.6.0
  */
+@ThreadSafe
 public class OptionsMap implements Serializable {
 
   private static final long serialVersionUID = 1;
