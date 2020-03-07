@@ -17,6 +17,9 @@ package com.datastax.oss.driver.api.core.config;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -26,6 +29,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
+import net.jcip.annotations.Immutable;
 
 /**
  * An in-memory repository of config options, for use with {@link
@@ -46,7 +50,9 @@ import java.util.function.Consumer;
  *
  * @since 4.6.0
  */
-public class OptionsMap {
+public class OptionsMap implements Serializable {
+
+  private static final long serialVersionUID = 1;
 
   /**
    * Creates a new instance that contains the driver's default configuration.
@@ -62,9 +68,17 @@ public class OptionsMap {
     return source;
   }
 
-  private final ConcurrentHashMap<String, Map<DriverOption, Object>> map =
-      new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, Map<DriverOption, Object>> map;
+
   private final List<Consumer<OptionsMap>> changeListeners = new CopyOnWriteArrayList<>();
+
+  public OptionsMap() {
+    this(new ConcurrentHashMap<>());
+  }
+
+  private OptionsMap(ConcurrentHashMap<String, Map<DriverOption, Object>> map) {
+    this.map = map;
+  }
 
   /**
    * Associates the specified value for the specified option, in the specified execution profile.
@@ -187,6 +201,22 @@ public class OptionsMap {
     return (ValueT) value;
   }
 
+  /**
+   * This object gets replaced by an internal proxy for serialization.
+   *
+   * @serialData the serialized form of the {@code Map<String, Map<DriverOption, Object>>} used to
+   *     store options internally (listeners are transient).
+   */
+  private Object writeReplace() {
+    return new SerializationProxy(this.map);
+  }
+
+  // Should never be called since we serialize a proxy
+  @SuppressWarnings("UnusedVariable")
+  private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+    throw new InvalidObjectException("Proxy required");
+  }
+
   protected static void fillWithDriverDefaults(OptionsMap map) {
     // Skip CONFIG_RELOAD_INTERVAL because the map-based config doesn't need periodic reloading
     map.put(TypedDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(2));
@@ -286,5 +316,21 @@ public class OptionsMap {
     map.put(TypedDriverOption.NETTY_TIMER_TICKS_PER_WHEEL, 2048);
     map.put(TypedDriverOption.COALESCER_MAX_RUNS, 5);
     map.put(TypedDriverOption.COALESCER_INTERVAL, Duration.of(10, ChronoUnit.MICROS));
+  }
+
+  @Immutable
+  private static class SerializationProxy implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private final ConcurrentHashMap<String, Map<DriverOption, Object>> map;
+
+    private SerializationProxy(ConcurrentHashMap<String, Map<DriverOption, Object>> map) {
+      this.map = map;
+    }
+
+    private Object readResolve() {
+      return new OptionsMap(map);
+    }
   }
 }
