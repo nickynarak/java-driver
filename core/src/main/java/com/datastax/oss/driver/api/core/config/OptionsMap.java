@@ -163,7 +163,12 @@ public class OptionsMap implements Serializable {
     return remove(DriverExecutionProfile.DEFAULT_NAME, option);
   }
 
-  /** Registers a listener that will get notified when this object changes. */
+  /**
+   * Registers a listener that will get notified when this object changes.
+   *
+   * <p>This is mostly for internal use by the driver. Note that listeners are transient, and not
+   * taken into account by {@link #equals(Object)} and {@link #hashCode()}.
+   */
   public void addChangeListener(@NonNull Consumer<OptionsMap> listener) {
     changeListeners.add(Objects.requireNonNull(listener));
   }
@@ -176,6 +181,23 @@ public class OptionsMap implements Serializable {
    */
   public boolean removeChangeListener(@NonNull Consumer<OptionsMap> listener) {
     return changeListeners.remove(Objects.requireNonNull(listener));
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (other == this) {
+      return true;
+    } else if (other instanceof OptionsMap) {
+      OptionsMap that = (OptionsMap) other;
+      return this.map.equals(that.map);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return map.hashCode();
   }
 
   /**
