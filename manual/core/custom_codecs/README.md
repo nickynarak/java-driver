@@ -269,7 +269,12 @@ Then the new mapping codec could be registered as follows:
 CqlSession session = ...
 CodecRegistry codecRegistry = session.getContext().getCodecRegistry();
 // The target user-defined type
-UserDefinedType coordinatesUdt = ...;
+UserDefinedType coordinatesUdt =
+    session
+        .getMetadata()
+        .getKeyspace("...")
+        .flatMap(ks -> ks.getUserDefinedType("coordinates"))
+        .orElseThrow(IllegalStateException::new);
 // The "inner" codec that handles the conversions from CQL from/to UdtValue
 TypeCodec<UdtValue> innerCodec = codecRegistry.codecFor(coordinatesUdt);
 // The mapping codec that will handle the conversions from/to UdtValue and Coordinates
