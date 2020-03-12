@@ -490,7 +490,7 @@ public class CodecRegistryIT {
   }
 
   @Test
-  public void should_be_able_to_register_and_use_custom_codec_for_user_defined_type() {
+  public void should_register_and_use_custom_codec_for_user_defined_type() {
 
     Map<String, Coordinates> coordinatesMap = ImmutableMap.of("home", new Coordinates(12, 34));
     GenericType<Map<String, Coordinates>> coordinatesMapType =
