@@ -289,7 +289,7 @@ Coordinates coordinates = row.get("coordinates", Coordinates.class);
 ``` 
 
 Note: if you need even more advanced mapping capabilities, consider adopting
-the driver's [object mapping framework].
+the driver's [object mapping framework](../../mapper/).
 
 ### Subtype polymorphism
 
@@ -360,4 +360,3 @@ private static String formatRow(Row row) {
 [TypeCodec]:     https://docs.datastax.com/en/drivers/java/4.5/com/datastax/oss/driver/api/core/type/codec/TypeCodec.html
 [MappingCodec]:     https://docs.datastax.com/en/drivers/java/4.5/com/datastax/oss/driver/api/core/type/codec/MappingCodec.html
 [SessionBuilder.addTypeCodecs]: https://docs.datastax.com/en/drivers/java/4.5/com/datastax/oss/driver/api/core/session/SessionBuilder.html#addTypeCodecs-com.datastax.oss.driver.api.core.type.codec.TypeCodec...-
-[object mapping framework]: https://docs.datastax.com/en/developer/java-driver/4.5/manual/mapper/
