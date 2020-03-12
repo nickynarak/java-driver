@@ -25,20 +25,22 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 
 /**
- * A {@link TypeCodec} that maps instances of {@code InnerT}, a supported Java type, to instances of
- * a target {@code OuterT} Java type.
+ * A {@link TypeCodec} that maps instances of {@code InnerT}, a driver supported Java type, to
+ * instances of a target {@code OuterT} Java type.
  *
  * <p>This codec can be used to provide support for Java types that are not natively handled by the
  * driver, as long as there is a conversion path to and from another supported Java type.
  *
- * <p>See the <a
- * href="https://docs.datastax.com/en/developer/java-driver/latest/manual/core/custom_codecs/">driver
- * documentation on custom codecs</a> for more information and a few usage examples.
- *
- * @param <InnerT> The "inner" Java type; must be a driver supported Java type (that is, there must
+ * @param <InnerT> The "inner" Java type; must be a driver supported Java type< (that is, there must
  *     exist a codec registered for it).
  * @param <OuterT> The "outer", or target Java type; this codec will handle the mapping to and from
  *     {@code InnerT} and {@code OuterT}.
+ * @see <a
+ *     href="https://docs.datastax.com/en/developer/java-driver/latest/manual/core/custom_codecs/">driver
+ *     documentation on custom codecs</a>
+ * @see <a
+ *     href="https://docs.datastax.com/en/developer/java-driver/latest/manual/core/#cql-to-java-type-mapping">
+ *     driver supported Java types</a>
  */
 public abstract class MappingCodec<InnerT, OuterT> implements TypeCodec<OuterT> {
 
