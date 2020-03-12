@@ -54,7 +54,7 @@ public abstract class MappingCodec<InnerT, OuterT> implements TypeCodec<OuterT> 
    * @param innerCodec The inner codec to use to handle instances of InnerT; must not be null.
    * @param outerJavaType The outer Java type; must not be null.
    */
-  public MappingCodec(
+  protected MappingCodec(
       @NonNull TypeCodec<InnerT> innerCodec, @NonNull GenericType<OuterT> outerJavaType) {
     this.innerCodec = Objects.requireNonNull(innerCodec, "innerCodec cannot be null");
     this.outerJavaType = Objects.requireNonNull(outerJavaType, "outerJavaType cannot be null");
